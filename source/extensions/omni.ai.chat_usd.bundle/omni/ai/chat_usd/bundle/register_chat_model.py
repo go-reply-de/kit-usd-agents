@@ -20,6 +20,7 @@ from typing import Any, Dict, Sequence
 import carb.settings
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from lc_agent import get_chat_model_registry
 
 from .chat_models.chat_nvnim import ChatNVNIM
@@ -103,6 +104,26 @@ MODELS = {
         "ChatOpenAI",
         True,
     ),
+    "google/gemini-3.1-pro-preview": (
+        {
+            "model": "gemini-3.1-pro-preview",
+            "max_tokens": 64 * 1024,
+        },
+        1024 * 1024,
+        False,
+        "ChatGoogleGenerativeAI",
+        True,
+    ),
+    "google/gemini-3-flash-preview": (
+        {
+            "model": "gemini-3-flash-preview",
+            "max_tokens": 64 * 1024,
+        },
+        1024 * 1024,
+        False,
+        "ChatGoogleGenerativeAI",
+        True,
+    ),
 }
 
 TOKENIZER_PATH = Path(__file__).parent.joinpath("../../../../data/Llama3-70B-tokenizer.model")
@@ -147,6 +168,11 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
     openai_api_key = os.environ.get("OPENAI_API_KEY")
     if not openai_api_key:
         openai_api_key = carb.settings.get_settings().get("/exts/omni.ai.chat_usd.bundle/openai_api_key")
+
+    # Google API Key for native Google Gemini models
+    google_api_key = os.environ.get("GOOGLE_API_KEY")
+    if not google_api_key:
+        google_api_key = carb.settings.get_settings().get("/exts/omni.ai.chat_usd.bundle/google_api_key")
 
     # Func ID
     func_id = carb.settings.get_settings().get("/exts/omni.ai.chat_usd.bundle/nvidia_func_id")
@@ -270,6 +296,13 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
                 )
                 continue
 
+            # Skip Google models if no Google API key is available
+            if chat_model_class == "ChatGoogleGenerativeAI" and not google_api_key:
+                carb.log_warn(
+                    f"Skipping {name} registration: GOOGLE_API_KEY or /exts/omni.ai.chat_usd.bundle/google_api_key not specified"
+                )
+                continue
+
             hidden = hidden or (not chat_usd_developer_mode and devmode_only)
 
             args = args.copy()
@@ -290,6 +323,7 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
                 chat_model_class=chat_model_class,
                 custom_url=custom_url,
                 openai_api_key=openai_api_key,
+                google_api_key=google_api_key,
             ):
                 # Make a fresh copy of args at call time to avoid mutations
                 args = args.copy()
@@ -300,6 +334,9 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
                 if chat_model_class == "ChatOpenAI":
                     # Native OpenAI model - no base_url, use OpenAI API key
                     model = ChatOpenAI(api_key=openai_api_key, **args)
+                elif chat_model_class == "ChatGoogleGenerativeAI":
+                    # Native Google model - no base_url, use Google API key
+                    model = ChatGoogleGenerativeAI(api_key=google_api_key, **args)
                 elif chat_model_class == "ChatNVNIM":
                     model = ChatNVNIM(api_key=api_key, base_url=url, **args)
                 elif custom_url:

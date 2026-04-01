@@ -29,6 +29,7 @@ include = ["*.toml", "*.py", "*.md"]
 # Alternative to NVIDIA_API_KEY
 nvidia_api_key = "" # Put your API key here
 openai_api_key = "" # Put your OpenAI API key here
+google_api_key = "" # Put your Google API key here
 
 # enable/disable the chat USD agent
 register_chat_usd_agent = true

@@ -17,6 +17,7 @@ packages = [
     "fastapi<0.120.0",
     "jsonschema",
     "langchain",
+    "langchain-google-genai",
     "langchain-nvidia-ai-endpoints",
     "langchain-openai",
     "numpy",
