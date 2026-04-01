@@ -22,6 +22,7 @@ packages = [
     "langchain-openai",
     "numpy",
     "tiktoken",
+    "typing-extensions>=4.12.2",
     "uvicorn",
 ]
 extra_args = ["--no-cache-dir", "--force-reinstall", "--upgrade", "--ignore-installed"]
