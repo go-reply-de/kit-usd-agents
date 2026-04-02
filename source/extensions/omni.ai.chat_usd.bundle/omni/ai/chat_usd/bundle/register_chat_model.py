@@ -58,6 +58,8 @@ class NoThinkChatNVIDIA(ChatNVIDIA):
         return payload
 
 
+GOOGLE_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
 MODELS = {
     "google/gemini-3.1-pro-preview": (
         {
@@ -66,7 +68,7 @@ MODELS = {
         },
         1024 * 1024,
         False,
-        "ChatGoogleGenerativeAI",
+        "ChatGoogleOpenAI",
         True,
     ),
     "google/gemini-3-flash-preview": (
@@ -76,7 +78,7 @@ MODELS = {
         },
         1024 * 1024,
         False,
-        "ChatGoogleGenerativeAI",
+        "ChatGoogleOpenAI",
         True,
     ),
     "meta/llama-4-maverick-17b-128e-instruct": (
@@ -296,7 +298,7 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
                 continue
 
             # Skip Google models if no Google API key is available
-            if chat_model_class == "ChatGoogleGenerativeAI" and not google_api_key:
+            if chat_model_class in ("ChatGoogleGenerativeAI", "ChatGoogleOpenAI") and not google_api_key:
                 carb.log_warn(
                     f"Skipping {name} registration: GOOGLE_API_KEY or /exts/omni.ai.chat_usd.bundle/google_api_key not specified"
                 )
@@ -333,6 +335,13 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
                 if chat_model_class == "ChatOpenAI":
                     # Native OpenAI model - no base_url, use OpenAI API key
                     model = ChatOpenAI(api_key=openai_api_key, **args)
+                elif chat_model_class == "ChatGoogleOpenAI":
+                    # Google Gemini via OpenAI-compatible endpoint (avoids langchain_google_genai dependency issues)
+                    model = ChatOpenAI(
+                        api_key=google_api_key,
+                        base_url=GOOGLE_OPENAI_BASE_URL,
+                        **args,
+                    )
                 elif chat_model_class == "ChatGoogleGenerativeAI":
                     # Native Google model - no base_url, use Google API key
                     from langchain_google_genai import ChatGoogleGenerativeAI
