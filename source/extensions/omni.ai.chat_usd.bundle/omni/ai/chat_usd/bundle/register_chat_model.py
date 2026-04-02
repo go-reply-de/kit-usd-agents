@@ -20,7 +20,6 @@ from typing import Any, Dict, Sequence
 import carb.settings
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_openai import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
 from lc_agent import get_chat_model_registry
 
 from .chat_models.chat_nvnim import ChatNVNIM
@@ -336,6 +335,7 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
                     model = ChatOpenAI(api_key=openai_api_key, **args)
                 elif chat_model_class == "ChatGoogleGenerativeAI":
                     # Native Google model - no base_url, use Google API key
+                    from langchain_google_genai import ChatGoogleGenerativeAI
                     model = ChatGoogleGenerativeAI(api_key=google_api_key, **args)
                 elif chat_model_class == "ChatNVNIM":
                     model = ChatNVNIM(api_key=api_key, base_url=url, **args)
