@@ -60,6 +60,26 @@ class NoThinkChatNVIDIA(ChatNVIDIA):
 
 
 MODELS = {
+    "google/gemini-3.1-pro-preview": (
+        {
+            "model": "gemini-3.1-pro-preview",
+            "max_tokens": 64 * 1024,
+        },
+        1024 * 1024,
+        False,
+        "ChatGoogleGenerativeAI",
+        True,
+    ),
+    "google/gemini-3-flash-preview": (
+        {
+            "model": "gemini-3-flash-preview",
+            "max_tokens": 64 * 1024,
+        },
+        1024 * 1024,
+        False,
+        "ChatGoogleGenerativeAI",
+        True,
+    ),
     "meta/llama-4-maverick-17b-128e-instruct": (
         {
             "model": "meta/llama-4-maverick-17b-128e-instruct",
@@ -102,26 +122,6 @@ MODELS = {
         128 * 1024,
         False,
         "ChatOpenAI",
-        True,
-    ),
-    "google/gemini-3.1-pro-preview": (
-        {
-            "model": "gemini-3.1-pro-preview",
-            "max_tokens": 64 * 1024,
-        },
-        1024 * 1024,
-        False,
-        "ChatGoogleGenerativeAI",
-        True,
-    ),
-    "google/gemini-3-flash-preview": (
-        {
-            "model": "gemini-3-flash-preview",
-            "max_tokens": 64 * 1024,
-        },
-        1024 * 1024,
-        False,
-        "ChatGoogleGenerativeAI",
         True,
     ),
 }
@@ -185,8 +185,8 @@ def register_chat_model(model_names=None, api_key=None, register_all_lc_agent_mo
     settings = carb.settings.get_settings()
     custom_models = settings.get("/exts/omni.ai.chat_usd.bundle/custom_chat_model")
 
-    if not custom_models and not api_key:
-        carb.log_warn("No custom models or api_key provided, skipping usdcode models registration")
+    if not custom_models and not any([api_key, openai_api_key, google_api_key]):
+        carb.log_warn("No custom models or valid api keys provided, skipping usdcode models registration")
         return
 
     if custom_models:
