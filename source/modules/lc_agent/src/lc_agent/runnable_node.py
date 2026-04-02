@@ -1063,10 +1063,16 @@ class RunnableNode(RunnableSerializable[Input, Output], UUIDMixin):
         if chat_model_name:
             chat_model = get_chat_model_registry().get_model(chat_model_name)
         else:
-            # Fall back to default
-            from langchain_openai import ChatOpenAI
-
-            chat_model = ChatOpenAI(model="gpt-3.5-turbo")
+            # Try to get the first registered model as fallback
+            registered_names = get_chat_model_registry().get_registered_names()
+            if registered_names:
+                chat_model_name = registered_names[0]
+                chat_model = get_chat_model_registry().get_model(chat_model_name)
+            else:
+                raise ModelNotFoundError(
+                    "No chat model is registered. Please set a valid API key "
+                    "(NVIDIA_API_KEY, OPENAI_API_KEY, or GOOGLE_API_KEY) and restart."
+                )
 
         if chat_model is None:
             raise ModelNotFoundError(
